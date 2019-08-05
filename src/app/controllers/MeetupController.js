@@ -78,6 +78,27 @@ class MeetupController {
 
     return res.json(updatedMeetup);
   }
+
+  async delete(req, res) {
+    const meetup = await Meetup.findByPk(req.params.id);
+    const { user_id, date } = meetup;
+
+    if (user_id !== req.userId) {
+      return res.status(401).json({
+        error: "You don't have permission to delete this meetup.",
+      });
+    }
+
+    if (isBefore(date, new Date())) {
+      return res.status(401).json({
+        error: "You can only delete meetups that haven't happened yet.",
+      });
+    }
+
+    await meetup.destroy();
+
+    return res.send();
+  }
 }
 
 export default new MeetupController();
