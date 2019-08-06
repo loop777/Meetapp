@@ -4,10 +4,15 @@ import Subscription from '../models/Subscription';
 import User from '../models/User';
 import Meetup from '../models/Meetup';
 
+import SubscriptionMail from '../jobs/SubscriptionMail';
+import Queue from '../../lib/Queue';
+
 class SubscriptionController {
   async store(req, res) {
     const user = User.findByPk(req.userId);
-    const meetup = Meetup.findByPk(req.params.meetupId);
+    const meetup = Meetup.findByPk(req.params.meetupId, {
+      include: [User],
+    });
 
     if (isBefore(meetup.date, new Date())) {
       return res
@@ -58,6 +63,11 @@ class SubscriptionController {
     const subscription = await Subscription.create({
       user_id: user.id,
       meetup_id: meetup.id,
+    });
+
+    await Queue.add(SubscriptionMail.key, {
+      meetup,
+      user,
     });
 
     return res.json(subscription);
