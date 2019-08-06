@@ -30,6 +30,8 @@ routes.delete('/meetup/:id', MeetupController.delete);
 
 routes.post('/subscribe/:meetupId', SubscriptionController.store);
 
+routes.get('/subscriptions', SubscriptionController.index);
+
 routes.get('/organizing', OrganizingController.index);
 
 routes.post('/files', upload.single('file'), FileController.store);
