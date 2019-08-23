@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 import Subscription from '../models/Subscription';
 import User from '../models/User';
 import Meetup from '../models/Meetup';
+import File from '../models/File';
 
 import SubscriptionMail from '../jobs/SubscriptionMail';
 import Queue from '../../lib/Queue';
@@ -24,6 +25,18 @@ class SubscriptionController {
             },
           },
           required: true,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['name', 'email'],
+            },
+            {
+              model: File,
+              as: 'banner',
+              attributes: ['url', 'path'],
+            },
+          ],
         },
       ],
       order: [['meetup', 'date']],
@@ -96,6 +109,36 @@ class SubscriptionController {
     });
 
     return res.json(subscription);
+  }
+
+  async delete(req, res) {
+    const subscription = await Subscription.findByPk(req.params.id, {
+      include: [
+        {
+          model: Meetup,
+          as: 'meetup',
+          attributes: ['date'],
+        },
+      ],
+    });
+    const { user_id, meetup } = subscription;
+
+    if (user_id !== req.userId) {
+      return res.status(401).json({
+        error: "You don't have permission to delete this subscription.",
+      });
+    }
+
+    if (isBefore(meetup.date, new Date())) {
+      return res.status(401).json({
+        error:
+          "You can only unsubscribe from meetups that haven't happened yet.",
+      });
+    }
+
+    await subscription.destroy();
+
+    return res.send();
   }
 }
 
