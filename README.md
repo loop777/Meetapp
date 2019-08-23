@@ -10,3 +10,12 @@ Crie um arquivo .env seguindo o formato do arquivo .env.example.
 
 - Postgres
 - Redis
+
+### Scripts
+
+Rode `yarn dev` para iniciar o servidor e `yarn queue` para iniciar a fila de envio de emails.
+
+## Stack
+
+[Frontend](https://github.com/loop777/meetup-frontend)
+[Mobile](https://github.com/loop777/meetup-mobile)
